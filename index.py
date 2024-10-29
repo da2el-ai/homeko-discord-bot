@@ -73,12 +73,30 @@ class MyDiscordBot:
     画像添付されていた
     """
     async def handle_attachment(self, message):
-        for attachment in message.attachments:
-            # 画像ファイルかチェック
-            if any(attachment.filename.lower().endswith(ext) for ext in ['.png', '.jpg', '.jpeg', '.webp']):
-                await self.process_image(message, attachment)
-            else:
-                await message.channel.send('画像ファイルのみ対応しています')
+        # 画像ファイルの数をカウント
+        image_attachments = [
+            att for att in message.attachments 
+            if any(att.filename.lower().endswith(ext) for ext in ['.png', '.jpg', '.jpeg', '.webp'])
+        ]
+
+        # 画像が2つ以上の場合
+        if len(image_attachments) > 1:
+            await message.channel.send(f'{message.author.mention} たくさんの絵をありがとう！最初の1枚だけ見させてもらうね☆', reference=message)
+        else:
+            await message.channel.send(f'{message.author.mention} イラストありがとっ！見させてもらうね☆', reference=message)
+
+        # 最初の画像のみを処理
+        if image_attachments:
+            await self.process_image(message, image_attachments[0])
+        else:
+            await message.channel.send('画像ファイルのみ対応しています')
+
+        # for attachment in message.attachments:
+        #     # 画像ファイルかチェック
+        #     if any(attachment.filename.lower().endswith(ext) for ext in ['.png', '.jpg', '.jpeg', '.webp']):
+        #         await self.process_image(message, attachment)
+        #     else:
+        #         await message.channel.send('画像ファイルのみ対応しています')
 
     """
     画像処理
@@ -95,7 +113,7 @@ class MyDiscordBot:
 
             # LLMからコメント取得
             comment = self.llm.get_comment(tags_str)
-            await message.channel.send(comment)
+            await message.channel.send(comment, reference=message)
         else:
             await message.channel.send(responce)
 
@@ -135,12 +153,6 @@ class MyDiscordBot:
 
     async def cmd_hoge(self, ctx):
         await ctx.send('ほげほげ')
-
-    def in_allowed_channel(self):
-        async def predicate(ctx):
-            return ctx.channel.id in Settings.allowed_channels
-        return commands.check(predicate)
-
 
 
 my_bot = MyDiscordBot()
