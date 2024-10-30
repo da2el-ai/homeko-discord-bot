@@ -1,12 +1,14 @@
 from pathlib import Path
 import os
 import uuid
+import asyncio
 from datetime import datetime 
 import discord
 from discord.ext import commands
 from modules.Settings import Settings
 from modules.Tagger import Tagger
 from modules.CommandR import CommandRPlus
+from modules.utils import debug_print
 
 # チェック関数をクラスの外に配置
 def in_allowed_channel():
@@ -81,22 +83,16 @@ class MyDiscordBot:
 
         # 画像が2つ以上の場合
         if len(image_attachments) > 1:
-            await message.channel.send(f'{message.author.mention} たくさんの絵をありがとう！最初の1枚だけ見させてもらうね☆', reference=message)
-        else:
+            await message.channel.send(f'{message.author.mention} たくさんのイラストをありがとう！最初の1枚だけ見させてもらうね☆', reference=message)
+        elif image_attachments:
             await message.channel.send(f'{message.author.mention} イラストありがとっ！見させてもらうね☆', reference=message)
+        else:
+            await message.channel.send(f'{message.author.mention} これイラストじゃないよ？', reference=message)
+            return
 
         # 最初の画像のみを処理
-        if image_attachments:
-            await self.process_image(message, image_attachments[0])
-        else:
-            await message.channel.send('画像ファイルのみ対応しています')
+        await self.process_image(message, image_attachments[0])
 
-        # for attachment in message.attachments:
-        #     # 画像ファイルかチェック
-        #     if any(attachment.filename.lower().endswith(ext) for ext in ['.png', '.jpg', '.jpeg', '.webp']):
-        #         await self.process_image(message, attachment)
-        #     else:
-        #         await message.channel.send('画像ファイルのみ対応しています')
 
     """
     画像処理
@@ -105,18 +101,31 @@ class MyDiscordBot:
         # 画像を保存
         success, responce, file_path = await self.save_image(attachment)
 
-        if success:
+        # 画像保存失敗メッセージ
+        if not success:
+            await message.channel.send(responce)
+            return
+
+        # LLMからコメント取得
+        asyncio.create_task(self.process_llm(message, file_path))
+
+    """
+    LLMからコメント取得
+    """
+    async def process_llm(self, message, file_path):
+        try:
             # タグ取得
             tags = Tagger.get_tags(file_path)
             tags_str = ', '.join(tags.keys())
-            # print(tags_str)
+            debug_print(tags_str)
 
             # LLMからコメント取得
             comment = self.llm.get_comment(tags_str)
-            print(comment)
+            debug_print(comment)
             await message.channel.send(comment, reference=message)
-        else:
-            await message.channel.send(responce)
+        except Exception as e:
+            await message.channel.send("処理中にエラーが発生しました")
+
 
     """
     画像を保存
