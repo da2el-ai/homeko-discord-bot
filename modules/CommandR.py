@@ -3,28 +3,47 @@
 https://corkborg.github.io/wd14-tagger-standalone/
 """
 
-from pathlib import Path
-import time
+# import time
+import random
 import cohere
 from modules.Settings import Settings
+
+chara = ["aaa", "bbb", "ccc", "ddd"]
+
 
 class CommandRPlus:
     def __init__(self):
 
-        self.prompt = Path(Settings.prompt_path).read_text(encoding='utf-8')
         self.co = cohere.ClientV2(api_key=Settings.llm_api_key)  # V2クライアントを使用
+        self.chara_length = len(Settings.characters)
+        self.last_selected = 0
+
+    """
+    キャラクターをランダムに選出
+    """
+    def get_random_character(self):
+        # 利用可能なインデックスのリストを作成（前回のインデックスを除外）
+        available_index = [i for i in range(self.chara_length) if i != self.last_selected]
+        # ランダムに選択
+        selected_index = random.choice(available_index)
+        self.last_selected = selected_index
+
+        return Settings.characters[selected_index]
 
     """
     画像タグを渡してコメントを受け取る
     """
     def get_comment(self, tags_str):
+        # ランダムにキャラクターを選出し、プロンプトと合体する
+        prompt = f"{Settings.prompt}{self.get_random_character()}"
+
         try:
             rag = self.co.chat(
                 model="command-r-plus",
                 messages=[
                     {
                         "role": "system",
-                        "content": self.prompt
+                        "content": prompt
                     },
                     {
                         "role": "user",
