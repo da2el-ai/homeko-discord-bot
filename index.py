@@ -113,6 +113,7 @@ class MyDiscordBot:
 
             # LLMからコメント取得
             comment = self.llm.get_comment(tags_str)
+            print(comment)
             await message.channel.send(comment, reference=message)
         else:
             await message.channel.send(responce)

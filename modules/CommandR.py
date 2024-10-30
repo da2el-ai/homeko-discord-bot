@@ -8,12 +8,9 @@ import random
 import cohere
 from modules.Settings import Settings
 
-chara = ["aaa", "bbb", "ccc", "ddd"]
-
 
 class CommandRPlus:
     def __init__(self):
-
         self.co = cohere.ClientV2(api_key=Settings.llm_api_key)  # V2クライアントを使用
         self.chara_length = len(Settings.characters)
         self.last_selected = 0
@@ -51,16 +48,22 @@ class CommandRPlus:
                     }
                 ]
             )
-            return rag.message.content[0].text
+            
+            # コメント文字数チェック
+            if len(rag.message.content[0].text) > Settings.max_comment_length:
+                return Settings.msg_comment_error
+            else:
+                return rag.message.content[0].text
             
         except cohere.error.CohereError as e:
             # Cohereの特定のエラー
             error_message = f"Cohereのエラーが発生しました: {str(e)}"
             print(error_message)  # ログ用
-            return "ごめんね、コメントの生成に失敗しちゃった... 後でもう一度試してみてね！"
+            return Settings.msg_comment_error
             
         except Exception as e:
             # その他の予期せぬエラー
             error_message = f"予期せぬエラーが発生しました: {str(e)}"
             print(error_message)  # ログ用
-            return "ごめんね、なにか問題が起きちゃった... 後でもう一度試してみてね！"
+            return Settings.msg_comment_error
+

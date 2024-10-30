@@ -44,4 +44,8 @@ class Settings:
     # CommandR+ に渡すプロンプト
     prompt = Path(str(os.getenv('PROMPT_PATH', 'prompt.md'))).read_text(encoding='utf-8')
     characters = load_character(str(os.getenv('CHARACTER_PATH', 'character.yaml')))
+    # コメント最大数
+    max_comment_length = int(os.getenv('MAX_COMMENT_LENGTH', 400))
 
+    # LLMコメントエラー
+    msg_comment_error = str(os.getenv('MSG_COMMENT_ERROR'))
