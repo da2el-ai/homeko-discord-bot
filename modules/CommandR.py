@@ -7,6 +7,7 @@ https://corkborg.github.io/wd14-tagger-standalone/
 import random
 import cohere
 from modules.Settings import Settings
+from modules.utils import debug_print
 
 
 class CommandRPlus:
@@ -33,6 +34,7 @@ class CommandRPlus:
     def get_comment(self, tags_str):
         # ランダムにキャラクターを選出し、プロンプトと合体する
         prompt = f"{Settings.prompt}{self.get_random_character()}"
+        debug_print(prompt)
 
         try:
             rag = self.co.chat(
