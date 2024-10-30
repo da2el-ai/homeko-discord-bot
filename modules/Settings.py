@@ -25,6 +25,9 @@ def load_character(yaml_file):
 class Settings:
     load_dotenv()
 
+    # デバッグメッセージを表示するか
+    debug = str(os.getenv('DEBUG', 'false')).lower() == 'true'
+
     # 画像保存フォルダ
     image_folder = str(os.getenv('IMAGE_FOLDER', 'images'))
 
