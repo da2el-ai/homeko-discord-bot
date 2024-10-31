@@ -2,6 +2,7 @@ import os
 import asyncio
 import discord
 from discord.ext import commands
+from concurrent.futures import ThreadPoolExecutor
 from modules.Settings import Settings
 from modules.Tagger import Tagger
 from modules.CommandR import CommandRPlus
@@ -103,7 +104,7 @@ class MyDiscordBot:
             await message.channel.send(responce)
             return
 
-        # LLMからコメント取得
+        # LLMからコメント取得を別タスクで実行
         asyncio.create_task(self.process_llm(message, file_path))
 
     """
@@ -111,15 +112,27 @@ class MyDiscordBot:
     """
     async def process_llm(self, message, file_path):
         try:
-            # タグ取得
-            tags = Tagger.get_tags(file_path)
+            # イベントループを取得
+            loop = asyncio.get_event_loop()
+
+            # タグ取得を別スレッドで実行
+            tags = await loop.run_in_executor(
+                ThreadPoolExecutor(),
+                Tagger.get_tags,
+                file_path
+            )
             tags_str = ', '.join(tags.keys())
             debug_print(tags_str)
 
-            # LLMからコメント取得
-            comment = self.llm.get_comment(tags_str)
+            # LLMの処理も別スレッドで実行
+            comment = await loop.run_in_executor(
+                ThreadPoolExecutor(),
+                self.llm.get_comment,
+                tags_str
+            )
             debug_print(comment)
             await message.channel.send(comment, reference=message)
+
         except Exception as e:
             await message.channel.send("処理中にエラーが発生しました")
 
