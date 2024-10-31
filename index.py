@@ -1,14 +1,11 @@
-from pathlib import Path
 import os
-import uuid
 import asyncio
-from datetime import datetime 
 import discord
 from discord.ext import commands
 from modules.Settings import Settings
 from modules.Tagger import Tagger
 from modules.CommandR import CommandRPlus
-from modules.utils import debug_print
+from modules.utils import debug_print, save_image
 
 # チェック関数をクラスの外に配置
 def in_allowed_channel():
@@ -99,7 +96,7 @@ class MyDiscordBot:
     """
     async def process_image(self, message, attachment):
         # 画像を保存
-        success, responce, file_path = await self.save_image(attachment)
+        success, responce, file_path = await save_image(attachment, Settings.image_folder)
 
         # 画像保存失敗メッセージ
         if not success:
@@ -125,38 +122,6 @@ class MyDiscordBot:
             await message.channel.send(comment, reference=message)
         except Exception as e:
             await message.channel.send("処理中にエラーが発生しました")
-
-
-    """
-    画像を保存
-    """
-    async def save_image(self, attachment):
-        # フォルダを作る
-        save_dir = Path(Settings.image_folder)
-        save_dir.mkdir(exist_ok=True)
-
-        # ファイル名を日付＋UUIDに
-        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-        file_ext = Path(attachment.filename).suffix.lower()
-        file_name = f"{timestamp}_{uuid.uuid4()}{file_ext}"
-        file_path = save_dir / file_name
-
-        # 画像保存
-        try:
-            await attachment.save(file_path)
-            responce = (
-                f"画像を受け取りました\n"
-                f"ファイル名: {attachment.filename}\n"
-            )
-            return True, responce, file_path
-        except Exception as e:
-            responce = (
-                f"画像の保存に失敗しました\n"
-                f"エラー: {str(e)}"
-            )
-            return False, responce, file_path
-        
-
 
     async def on_ready(self):
         print(f'{self.bot.user.name}がログインしました')
