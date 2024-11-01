@@ -35,5 +35,5 @@ class Settings:
     # コメント最大数
     max_comment_length = int(os.getenv('MAX_COMMENT_LENGTH', 400))
 
-    # LLMコメントエラー
-    msg_comment_error = str(os.getenv('MSG_COMMENT_ERROR'))
+    # メッセージファイル
+    message_path = str(os.getenv('MESSAGE_PATH', 'message.toml'))

@@ -1,0 +1,15 @@
+LLM_COMMENT_ERROR = "ごめんね、コメントの生成に失敗しちゃった... 後でもう一度試してみてね！"
+
+DISCORD_NOT_ALLOWED_CMD = 'このコマンドはこのチャンネルでは使用出来ません'
+
+DISCORD_CHARA_DEFAULT = '使用方法: !chara [list/random/キャラクター名]'
+DISCORD_CHARA_LIST = 'キャラクター一覧：\n'
+DISCORD_CHARA_RANDOM = 'キャラクターをランダムにしました'
+DISCORD_CHARA_SET = 'キャラクターを「{name}」にしました'
+DISCORD_CHARA_NOT_EXISTS = '「{name}」って娘はいないよ？'
+
+
+DISCORD_ATTACH_NORMAL = "イラストありがとっ！見させてもらうね☆"
+DISCORD_ATTACH_MANY = "たくさんのイラストをありがとう！最初の1枚だけ見させてもらうね☆"
+DISCORD_ATTACH_NOT_IMAGE = "これイラストじゃないよ？"
+

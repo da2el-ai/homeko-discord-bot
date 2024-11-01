@@ -5,6 +5,7 @@ import discord
 from discord.ext import commands
 from concurrent.futures import ThreadPoolExecutor
 from modules.Settings import Settings
+from modules.Message import Message
 from modules.Tagger import Tagger
 from modules.CommandR import CommandRPlus
 from modules.Prompt import Prompt
@@ -28,6 +29,7 @@ class MyDiscordBot:
         intents = discord.Intents.default()
         intents.message_content = True
 
+        Message.init()
         Prompt.init()
 
         self.bot = commands.Bot(command_prefix='!', intents=intents)
@@ -54,7 +56,7 @@ class MyDiscordBot:
         async def chara(ctx, name = None):
             if ctx.invoked_subcommand is None:
                 if name is None:
-                    await ctx.send('使用方法: !chara [list/random/キャラクター名]')
+                    await ctx.send(Message.msg.DISCORD_CHARA_DEFAULT)
                 else:
                     await self.cmd_chara_set(ctx, name)
 
@@ -69,12 +71,12 @@ class MyDiscordBot:
         @hoge.error
         async def hoge_error(ctx, error):
             if isinstance(error, commands.CheckFailure):
-                await ctx.send('このコマンドはこのチャンネルでは使用出来ません')
+                await ctx.send(Message.msg.DISCORD_NOT_ALLOWED_CMD)
 
         @chara.error
         async def chara_error(ctx, error):
             if isinstance(error, commands.CheckFailure):
-                await ctx.send('このコマンドはこのチャンネルでは使用出来ません')
+                await ctx.send(Message.msg.DISCORD_NOT_ALLOWED_CMD)
     """
     イベント設定
     """
@@ -108,11 +110,11 @@ class MyDiscordBot:
 
         # 画像が2つ以上の場合
         if len(image_attachments) > 1:
-            await message.channel.send(f'{message.author.mention} たくさんのイラストをありがとう！最初の1枚だけ見させてもらうね☆', reference=message)
+            await message.channel.send(f'{message.author.mention} {Message.msg.DISCORD_ATTACH_MANY}', reference=message)
         elif image_attachments:
-            await message.channel.send(f'{message.author.mention} イラストありがとっ！見させてもらうね☆', reference=message)
+            await message.channel.send(f'{message.author.mention} {Message.msg.DISCORD_ATTACH_NORMAL}', reference=message)
         else:
-            await message.channel.send(f'{message.author.mention} これイラストじゃないよ？', reference=message)
+            await message.channel.send(f'{message.author.mention} {Message.msg.DISCORD_ATTACH_NOT_IMAGE}', reference=message)
             return
 
         # 最初の画像のみを処理
@@ -162,30 +164,30 @@ class MyDiscordBot:
             await message.channel.send(comment, reference=message)
 
         except Exception as e:
-            await message.channel.send("処理中にエラーが発生しました")
+            await message.channel.send(Message.msg.LLM_COMMENT_ERROR)
 
     async def on_ready(self):
-        print(f'{self.bot.user.name}がログインしました')
+        logger.info(f'{self.bot.user.name}がログインしました')
 
     async def cmd_hoge(self, ctx):
         await ctx.send('ほげほげ')
 
     """キャラクター一覧を表示"""
     async def cmd_chara_list(self, ctx):
-        await ctx.send(f'キャラクター一覧：\n{Prompt.get_chara_list()}')
+        await ctx.send(f'{Message.msg.DISCORD_CHARA_LIST}{Prompt.get_chara_list()}')
 
     """キャラクターをランダムにする"""
     async def cmd_chara_random(self, ctx):
         self.chara = "random"
-        await ctx.send('キャラクターをランダムにしました')
+        await ctx.send(Message.msg.DISCORD_CHARA_RANDOM)
 
     """キャラクターを指名する"""
     async def cmd_chara_set(self, ctx, name: str):
         if Prompt.is_exists_chara(name):
             self.chara = name
-            await ctx.send(f'キャラクターを「{name}」にしました')
+            await ctx.send(Message.get("DISCORD_CHARA_RANDOM", name=name))
         else:
-            await ctx.send(f'「{name}」って娘はいないよ？')
+            await ctx.send(Message.get("DISCORD_CHARA_NOT_EXISTS", name=name))
 
 
 # ファイルへの出力設定
