@@ -1,5 +1,6 @@
 import os
 import asyncio
+from loguru import logger
 import discord
 from discord.ext import commands
 from concurrent.futures import ThreadPoolExecutor
@@ -7,6 +8,7 @@ from modules.Settings import Settings
 from modules.Tagger import Tagger
 from modules.CommandR import CommandRPlus
 from modules.utils import debug_print, save_image
+
 
 # チェック関数をクラスの外に配置
 def in_allowed_channel():
@@ -122,7 +124,7 @@ class MyDiscordBot:
                 file_path
             )
             tags_str = ', '.join(tags.keys())
-            debug_print(tags_str)
+            logger.debug(tags_str)
 
             # LLMの処理も別スレッドで実行
             comment = await loop.run_in_executor(
@@ -130,7 +132,7 @@ class MyDiscordBot:
                 self.llm.get_comment,
                 tags_str
             )
-            debug_print(comment)
+            logger.debug(comment)
             await message.channel.send(comment, reference=message)
 
         except Exception as e:
@@ -142,6 +144,9 @@ class MyDiscordBot:
     async def cmd_hoge(self, ctx):
         await ctx.send('ほげほげ')
 
+
+# ファイルへの出力設定
+logger.add("./log/homeko.log", rotation="100 MB")
 
 my_bot = MyDiscordBot()
 my_bot.bot.run(Settings.discord_token)

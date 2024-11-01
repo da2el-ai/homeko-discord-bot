@@ -3,9 +3,9 @@
 https://corkborg.github.io/wd14-tagger-standalone/
 """
 
-# import time
 import random
 import cohere
+from loguru import logger
 from modules.Settings import Settings
 from modules.utils import debug_print
 
@@ -34,7 +34,7 @@ class CommandRPlus:
     def get_comment(self, tags_str):
         # ランダムにキャラクターを選出し、プロンプトと合体する
         prompt = f"{Settings.prompt}{self.get_random_character()}"
-        debug_print(prompt)
+        logger.debug(prompt)
 
         try:
             rag = self.co.chat(
@@ -60,12 +60,12 @@ class CommandRPlus:
         except cohere.error.CohereError as e:
             # Cohereの特定のエラー
             error_message = f"Cohereのエラーが発生しました: {str(e)}"
-            print(error_message)  # ログ用
+            logger.error(error_message)  # ログ用
             return Settings.msg_comment_error
             
         except Exception as e:
             # その他の予期せぬエラー
             error_message = f"予期せぬエラーが発生しました: {str(e)}"
-            print(error_message)  # ログ用
+            logger.error(error_message)  # ログ用
             return Settings.msg_comment_error
 
