@@ -9,3 +9,4 @@ cohere
 discord.py
 load_dotenv
 loguru
+tomli

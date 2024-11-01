@@ -7,8 +7,8 @@ from concurrent.futures import ThreadPoolExecutor
 from modules.Settings import Settings
 from modules.Tagger import Tagger
 from modules.CommandR import CommandRPlus
+from modules.Prompt import Prompt
 from modules.utils import debug_print, save_image
-
 
 # チェック関数をクラスの外に配置
 def in_allowed_channel():
@@ -22,9 +22,13 @@ Discord bot class
 """
 class MyDiscordBot:
     def __init__(self):
+        self.chara = "random"
+
         # Discordのインテント設定
         intents = discord.Intents.default()
         intents.message_content = True
+
+        Prompt.init()
 
         self.bot = commands.Bot(command_prefix='!', intents=intents)
         self.setup_commands()
@@ -45,11 +49,32 @@ class MyDiscordBot:
         async def hoge(ctx):
             await self.cmd_hoge(ctx)
 
+        @self.bot.group(invoke_without_command=True)
+        @in_allowed_channel()
+        async def chara(ctx, name = None):
+            if ctx.invoked_subcommand is None:
+                if name is None:
+                    await ctx.send('使用方法: !chara [list/random/キャラクター名]')
+                else:
+                    await self.cmd_chara_set(ctx, name)
+
+        @chara.command(name='list')
+        async def chara_list(ctx):
+            await self.cmd_chara_list(ctx)
+
+        @chara.command(name='random')
+        async def chara_random(ctx):
+            await self.cmd_chara_random(ctx)
+
         @hoge.error
         async def hoge_error(ctx, error):
             if isinstance(error, commands.CheckFailure):
                 await ctx.send('このコマンドはこのチャンネルでは使用出来ません')
 
+        @chara.error
+        async def chara_error(ctx, error):
+            if isinstance(error, commands.CheckFailure):
+                await ctx.send('このコマンドはこのチャンネルでは使用出来ません')
     """
     イベント設定
     """
@@ -130,6 +155,7 @@ class MyDiscordBot:
             comment = await loop.run_in_executor(
                 ThreadPoolExecutor(),
                 self.llm.get_comment,
+                Prompt.get_prompt(),
                 tags_str
             )
             logger.debug(comment)
@@ -143,6 +169,23 @@ class MyDiscordBot:
 
     async def cmd_hoge(self, ctx):
         await ctx.send('ほげほげ')
+
+    """キャラクター一覧を表示"""
+    async def cmd_chara_list(self, ctx):
+        await ctx.send(f'キャラクター一覧：\n{Prompt.get_chara_list()}')
+
+    """キャラクターをランダムにする"""
+    async def cmd_chara_random(self, ctx):
+        self.chara = "random"
+        await ctx.send('キャラクターをランダムにしました')
+
+    """キャラクターを指名する"""
+    async def cmd_chara_set(self, ctx, name: str):
+        if Prompt.is_exists_chara(name):
+            self.chara = name
+            await ctx.send(f'キャラクターを「{name}」にしました')
+        else:
+            await ctx.send(f'「{name}」って娘はいないよ？')
 
 
 # ファイルへの出力設定

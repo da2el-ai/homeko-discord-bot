@@ -1,23 +1,8 @@
 import os
 from dotenv import load_dotenv
-from pathlib import Path
 import yaml
 
 
-def load_character(yaml_file):
-    try:
-        with open(yaml_file, 'r', encoding='utf-8') as file:
-            data = yaml.safe_load(file)
-
-            if not isinstance(data["characters"], list):
-                raise ValueError(f"配列になっていません: {str(data)}")
-            
-            return data["characters"]
-
-    except FileNotFoundError:
-        raise FileNotFoundError(f"ファイル '{yaml_file}' が見つかりません")
-    except yaml.YAMLError as e:
-        raise ValueError(f"YAMLの解析エラー: {str(e)}")
 
 """
 設定 class
@@ -45,8 +30,8 @@ class Settings:
     llm_api_key = os.getenv('LLM_API_KEY')
 
     # CommandR+ に渡すプロンプト
-    prompt = Path(str(os.getenv('PROMPT_PATH', 'prompt.md'))).read_text(encoding='utf-8')
-    characters = load_character(str(os.getenv('CHARACTER_PATH', 'character.yaml')))
+    prompt_path = str(os.getenv('PROMPT_PATH', 'prompt.md'))
+    character_path = str(os.getenv('CHARACTER_PATH', 'character.toml'))
     # コメント最大数
     max_comment_length = int(os.getenv('MAX_COMMENT_LENGTH', 400))
 
