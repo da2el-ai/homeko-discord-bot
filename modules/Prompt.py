@@ -69,10 +69,26 @@ class Prompt:
     プロンプトを取得
     """
     @classmethod
-    def get_prompt(cls, chara = "random"):
-        profile = cls.get_random_chara()["profile"]
+    def get_prompt(cls, name = "random"):
+        if name == "random":
+            profile = cls.get_random_chara()["profile"]
+        else:
+            profile = cls.get_chara(name)["profile"]
 
         return f"{cls.prompt}\n{profile}"
+
+    """
+    指定したキャラを取得
+    """
+    @classmethod
+    def get_chara(cls, name):
+        for chara in cls.characters:
+            if isinstance(chara, dict) and "name" in chara:
+                if chara["name"] == name:
+                    return chara
+        
+        # キャラクターが見つからない場合はランダム選択
+        return cls.get_random_chara()
 
     """
     キャラクターをランダムに選出

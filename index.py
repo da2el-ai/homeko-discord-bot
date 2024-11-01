@@ -155,7 +155,7 @@ class MyDiscordBot:
             comment = await loop.run_in_executor(
                 ThreadPoolExecutor(),
                 self.llm.get_comment,
-                Prompt.get_prompt(),
+                Prompt.get_prompt(self.chara),
                 tags_str
             )
             logger.debug(comment)
